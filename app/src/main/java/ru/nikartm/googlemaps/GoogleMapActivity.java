@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -55,6 +56,7 @@ public class GoogleMapActivity extends AppCompatActivity
 
     private TextView tvStartPoint;
     private TextView tvEndPoint;
+    private ImageView ivStartPicker;
 
     private GoogleMap map;
     private View mapView;
@@ -83,6 +85,7 @@ public class GoogleMapActivity extends AppCompatActivity
 
         tvStartPoint = (TextView) findViewById(R.id.tv_start);
         tvEndPoint = (TextView) findViewById(R.id.tv_end);
+        ivStartPicker = (ImageView) findViewById(R.id.iv_start_picker);
         initClickByChoosePoint();
 
         Intent intent = getIntent();
@@ -111,6 +114,16 @@ public class GoogleMapActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 UtilPlace.searchPlace(GoogleMapActivity.this, REQUEST_CODE_END_POINT);
+            }
+        });
+
+        ivStartPicker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startPoint = getDeviceLocation();
+                tvStartPoint.setText(UtilPlace
+                        .getAddressByLatLng(getApplicationContext(), startPoint));
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(startPoint, DEFAULT_ZOOM));
             }
         });
     }
