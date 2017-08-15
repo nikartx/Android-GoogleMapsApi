@@ -13,11 +13,14 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" />
 
-    <ImageButton
-        android:layout_width="150dp"
+    <Button
+        android:layout_width="200dp"
         android:layout_height="100dp"
-        android:src="@mipmap/ic_route"
-        android:scaleType="fitCenter"
+        android:drawableStart="@mipmap/ic_route"
+        android:text="Click me"
+        android:textColor="#424242"
+        android:paddingStart="30dp"
+        android:paddingEnd="0dp"
         android:onClick="pickPlace"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />

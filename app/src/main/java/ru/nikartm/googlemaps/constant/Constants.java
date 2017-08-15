@@ -10,6 +10,4 @@ public class Constants {
     public static final String LONGITUDE_TAG = "longitude";
     public static final String NAME_TAG      = "name";
     public static final String ADDRESS_TAG   = "address";
-
-    public static final String POINT_KEY     = "point";
 }

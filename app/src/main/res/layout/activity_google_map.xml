@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
@@ -14,17 +14,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/map"
+        tools:context="ru.nikartm.googlemaps.GoogleMapActivity"
         android:name="com.google.android.gms.maps.SupportMapFragment" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorBlue"
-            android:paddingTop="10dp"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="10dp"
-            android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorBlue"
+        android:paddingTop="10dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="5dp"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -95,6 +97,72 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp"
+            android:weightSum="90"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btn_duration_walk"
+                android:layout_weight="30"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:padding="10dp"
+                android:layout_margin="5dp"
+                android:textAllCaps="false"
+                android:textColor="@color/colorWhite"
+                android:stateListAnimator="@null"
+                android:text="0 min."
+                android:background="@drawable/btn_oval_blue"
+                android:drawableStart="@drawable/ic_directions_walk"/>
+
+            <Button
+                android:id="@+id/btn_duration_car"
+                android:layout_weight="30"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:padding="10dp"
+                android:layout_margin="5dp"
+                android:textAllCaps="false"
+                android:textColor="@color/colorWhite"
+                android:stateListAnimator="@null"
+                android:text="0 min."
+                android:background="@drawable/btn_oval_blue"
+                android:drawableStart="@drawable/ic_directions_car" />
+
+            <TextView
+                android:id="@+id/tv_distance"
+                android:layout_weight="30"
+                android:layout_width="0dp"
+                android:gravity="center_vertical"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="0dp"
+                android:textAllCaps="false"
+                android:textColor="@color/colorWhite"
+                android:text="0 km"
+                android:drawablePadding="5dp"
+                android:drawableStart="@drawable/ic_pin_drop"/>
+
         </LinearLayout>
 
-</FrameLayout>
+    </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_build_route"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:src="@android:drawable/ic_menu_directions"
+        android:layout_marginLeft="@dimen/fab_margin"
+        android:layout_marginRight="@dimen/fab_margin"
+        app:layout_anchor="@id/linearLayout"
+        android:clickable="true"
+        android:layout_marginBottom="54dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
+
+</RelativeLayout>

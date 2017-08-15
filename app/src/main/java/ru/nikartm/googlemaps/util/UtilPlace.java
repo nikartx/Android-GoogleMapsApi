@@ -28,6 +28,10 @@ public class UtilPlace {
 
     public static final String TAG = UtilPlace.class.getSimpleName();
 
+    /**
+     * Open a google maps picker fragment
+     * @param activity context
+     */
     public static void pickOrFindPlace(Activity activity) {
         PlacePicker.IntentBuilder intentBuilder = new PlacePicker.IntentBuilder();
         try {
@@ -38,16 +42,11 @@ public class UtilPlace {
         }
     }
 
-    public static void pickOrFindPlace(Fragment fragment) {
-        PlacePicker.IntentBuilder intentBuilder = new PlacePicker.IntentBuilder();
-        try {
-            Intent intent = intentBuilder.build(fragment.getActivity());
-            fragment.startActivityForResult(intent, 1);
-        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
-            Log.e(TAG, "GooglePlayService error", e);
-        }
-    }
-
+    /**
+     * Open a search place fragment
+     * @param activity context
+     * @param requestCode of searching point (origin/destination)
+     */
     public static void searchPlace(Activity activity, int requestCode) {
         try {
             Intent intent =
@@ -60,18 +59,12 @@ public class UtilPlace {
         }
     }
 
-    public static void searchPlace(Fragment fragment, int requestCode) {
-        try {
-            Intent intent =
-                    new PlaceAutocomplete
-                            .IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
-                            .build(fragment.getActivity());
-            fragment.startActivityForResult(intent, requestCode);
-        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
-            Log.e(TAG, "GooglePlayService error", e);
-        }
-    }
-
+    /**
+     * Get full address name
+     * @param context activity context
+     * @param latLng coordinates of place
+     * @return string full address name
+     */
     public static String getAddressByLatLng(Context context, LatLng latLng) {
         String result = "";
         Geocoder geocoder = new Geocoder(context, Locale.getDefault());
