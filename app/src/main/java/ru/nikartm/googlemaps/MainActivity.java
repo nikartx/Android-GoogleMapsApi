@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -20,12 +18,12 @@ import ru.nikartm.googlemaps.constant.Constants;
 import ru.nikartm.googlemaps.util.Util;
 import ru.nikartm.googlemaps.util.UtilPlace;
 
+import static ru.nikartm.googlemaps.constant.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
+import static ru.nikartm.googlemaps.constant.Constants.SKIPPED_PERMISSIONS_ACCESS_GRANTED;
+
 public class MainActivity extends FragmentActivity  {
 
     public static final String TAG = MainActivity.class.getSimpleName();
-
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 7;
-    private static final int SKIPPED_PERMISSIONS_ACCESS_GRANTED = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +33,7 @@ public class MainActivity extends FragmentActivity  {
 
     // OnClick go to map
     public void pickPlace(View view) {
-        if (isPermissionGranted()) {
+        if (Util.checkPermission(this)) {
             if (Util.isNetworkAvailable(MainActivity.this)) {
                 UtilPlace.pickOrFindPlace(this);
             } else {
@@ -44,27 +42,15 @@ public class MainActivity extends FragmentActivity  {
         }
     }
 
-    private boolean isPermissionGranted() {
-        boolean isGranted = false;
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            isGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-        return isGranted;
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     UtilPlace.pickOrFindPlace(this);
-                } else if (grantResults.length > 0 && grantResults[0] == SKIPPED_PERMISSIONS_ACCESS_GRANTED) {
+                } else if (grantResults.length > 0
+                        && grantResults[0] == SKIPPED_PERMISSIONS_ACCESS_GRANTED) {
                     // Do something if skipped dialog
                 }
                 break;

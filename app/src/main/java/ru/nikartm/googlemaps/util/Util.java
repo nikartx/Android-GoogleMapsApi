@@ -1,12 +1,18 @@
 package ru.nikartm.googlemaps.util;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.widget.Button;
 
 import ru.nikartm.googlemaps.R;
+
+import static ru.nikartm.googlemaps.constant.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 
 /**
  * @author Ivan Vodyasov on 15.08.2017.
@@ -41,5 +47,24 @@ public class Util {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnected();
+    }
+
+    /**
+     * Checking permissions
+     * @param activity activity context
+     * @return boolean permission status, true - if permission granted
+     */
+    public static boolean checkPermission(Activity activity) {
+        boolean isGranted = false;
+        if (ContextCompat.checkSelfPermission(activity,
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            isGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+        return isGranted;
     }
 }

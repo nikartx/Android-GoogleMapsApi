@@ -10,4 +10,8 @@ public class Constants {
     public static final String LONGITUDE_TAG = "longitude";
     public static final String NAME_TAG      = "name";
     public static final String ADDRESS_TAG   = "address";
+
+    public static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 7;
+    public static final int SKIPPED_PERMISSIONS_ACCESS_GRANTED = -1;
+
 }

@@ -11,8 +11,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
@@ -57,12 +55,13 @@ import ru.nikartm.googlemaps.util.Util;
 import ru.nikartm.googlemaps.util.UtilPlace;
 
 import static android.location.Criteria.ACCURACY_FINE;
+import static ru.nikartm.googlemaps.constant.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
+import static ru.nikartm.googlemaps.constant.Constants.SKIPPED_PERMISSIONS_ACCESS_GRANTED;
 
 /**
  * Before starting maps need add location permission granted
- *
  * @author Ivan Vodyasov on 09.08.2017.
- * */
+ */
 public class GoogleMapActivity extends AppCompatActivity
         implements OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener,
@@ -70,8 +69,6 @@ public class GoogleMapActivity extends AppCompatActivity
 
     public static final String TAG = GoogleMapActivity.class.getSimpleName();
 
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 7;
-    private static final int SKIPPED_PERMISSIONS_ACCESS_GRANTED = -1;
     private static final int DEFAULT_ZOOM = 17;
     private static final int REQUEST_CODE_START_POINT = 5;
     private static final int REQUEST_CODE_END_POINT = 6;
@@ -99,9 +96,6 @@ public class GoogleMapActivity extends AppCompatActivity
     private Location lastLocation;
     private LatLng startPoint;
     private LatLng endPoint;
-
-    private boolean isLocationPermissionGranted;
-    private boolean isSkippedLocationPermissionGranted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -326,7 +320,7 @@ public class GoogleMapActivity extends AppCompatActivity
 
         updateLocationUI();
         setPickerPosition(getDeviceLocation(), latlng);
-        // Load by default
+        // Load and build walk route by default
         loadWalkRoute();
         loadCarRoute(false);
     }
@@ -344,7 +338,7 @@ public class GoogleMapActivity extends AppCompatActivity
 
     private void updateLocationUI() {
         if (map != null) {
-            if (!isSkippedLocationPermissionGranted && checkPermission()) {
+            if (Util.checkPermission(this)) {
                 map.setMyLocationEnabled(true);
                 map.getUiSettings().setMyLocationButtonEnabled(true);
             } else {
@@ -359,7 +353,7 @@ public class GoogleMapActivity extends AppCompatActivity
     private LatLng getDeviceLocation() {
         LatLng currentLocation = null;
         String bestProvider;
-        if (checkPermission()) {
+        if (Util.checkPermission(this)) {
             try {
                 LocationManager locationManager = (LocationManager)
                         getSystemService(Context.LOCATION_SERVICE);
@@ -381,28 +375,16 @@ public class GoogleMapActivity extends AppCompatActivity
         return currentLocation;
     }
 
-    private boolean checkPermission() {
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            isLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-        return isLocationPermissionGranted;
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        isLocationPermissionGranted = false;
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    isLocationPermissionGranted = true;
-                } else if (grantResults.length > 0 && grantResults[0] == SKIPPED_PERMISSIONS_ACCESS_GRANTED) {
-                    isSkippedLocationPermissionGranted = true;
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Do something
+                } else if (grantResults.length > 0
+                        && grantResults[0] == SKIPPED_PERMISSIONS_ACCESS_GRANTED) {
+                    // Do something
                 }
                 break;
         }
