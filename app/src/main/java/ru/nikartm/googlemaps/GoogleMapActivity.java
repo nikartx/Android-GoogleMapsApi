@@ -51,6 +51,7 @@ import com.google.maps.android.ui.IconGenerator;
 import java.util.ArrayList;
 
 import ru.nikartm.googlemaps.constant.Constants;
+import ru.nikartm.googlemaps.util.GeocodingTask;
 import ru.nikartm.googlemaps.util.Util;
 import ru.nikartm.googlemaps.util.UtilPlace;
 
@@ -72,6 +73,7 @@ public class GoogleMapActivity extends AppCompatActivity
     private static final int DEFAULT_ZOOM = 17;
     private static final int REQUEST_CODE_START_POINT = 5;
     private static final int REQUEST_CODE_END_POINT = 6;
+    private String MAPS_API_KEY;
 
     private TextView tvStartPoint;
     private TextView tvEndPoint;
@@ -101,6 +103,7 @@ public class GoogleMapActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_google_map);
+        MAPS_API_KEY = getResources().getString(R.string.google_maps_api_key);
 
         // Set the back arrow for toolbar
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -116,21 +119,69 @@ public class GoogleMapActivity extends AppCompatActivity
         tvDistance = (TextView) findViewById(R.id.tv_distance);
         fabBuildRoute = (FloatingActionButton) findViewById(R.id.fab_build_route);
 
-        initClickByChoosePoint();
-        initDurationInfoBtn();
-
         Intent intent = getIntent();
         latitude = intent.getDoubleExtra(Constants.LATITUDE_TAG, 0d);
         longitude = intent.getDoubleExtra(Constants.LONGITUDE_TAG, 0d);
         title = intent.getStringExtra(Constants.NAME_TAG);
         address = intent.getStringExtra(Constants.ADDRESS_TAG);
 
+        buildGoogleApiClient();
+        initClickByChoosePoint();
+        initDurationInfoBtn();
+        setMapsFragment();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        map = googleMap;
+        LatLng latlng = new LatLng(latitude, longitude);
+        setPickerPosition(startPoint, latlng);
+        updateLocationUI();
+
+        // Load and build walk route by default
+        loadWalkRoute();
+        loadCarRoute(false);
+    }
+
+    private void setMapsFragment() {
         SupportMapFragment mapFragment = (SupportMapFragment)
                 getSupportFragmentManager()
                         .findFragmentById(R.id.map);
         mapView = mapFragment.getView();
         mapFragment.getMapAsync(this);
         setGoogleMapButtonPosition();
+    }
+
+    private synchronized void buildGoogleApiClient() {
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addConnectionCallbacks(this)
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+        googleApiClient.connect();
+    }
+
+    private void setGoogleMapButtonPosition() {
+        View locationButton = ((View) mapView
+                .findViewById(Integer.parseInt("1")).getParent())
+                .findViewById(Integer.parseInt("2"));
+        RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+        rlp.setMargins(0, 480, 0, 0);
+    }
+
+    private void setPickerPosition(LatLng start, LatLng end) {
+        String startAddress = "";
+        if (start != null) {
+            startAddress = UtilPlace.getAddressByLatLng(getApplicationContext(), start);
+        }
+        tvStartPoint.setText(startAddress);
+        tvEndPoint.setText(address);
+        startPoint = start;
+        endPoint = end;
     }
 
     private void initClickByChoosePoint() {
@@ -189,8 +240,7 @@ public class GoogleMapActivity extends AppCompatActivity
     }
 
     private void loadWalkRoute() {
-        String key = getResources().getString(R.string.google_maps_api_key);
-        GoogleDirection.withServerKey(key)
+        GoogleDirection.withServerKey(MAPS_API_KEY)
                 .from(startPoint)
                 .to(endPoint)
                 .unit(Unit.METRIC)
@@ -218,8 +268,7 @@ public class GoogleMapActivity extends AppCompatActivity
     }
 
     private void loadCarRoute(final boolean isReload) {
-        String key = getResources().getString(R.string.google_maps_api_key);
-        GoogleDirection.withServerKey(key)
+        GoogleDirection.withServerKey(MAPS_API_KEY)
                 .from(startPoint)
                 .to(endPoint)
                 .unit(Unit.METRIC)
@@ -267,6 +316,8 @@ public class GoogleMapActivity extends AppCompatActivity
         CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, 200);
         map.animateCamera(update);
 
+        new GeocodingTask(getApplicationContext(), tvStartPoint).execute(startPoint);
+
         // Set markers on route
         addIcon(iconFactory, leg.getDistance().getText(), directionPositionList.get(directionPositionList.size()/2));
         map.addMarker(new MarkerOptions().position(startPoint).title(leg.getStartAddress()));
@@ -284,58 +335,6 @@ public class GoogleMapActivity extends AppCompatActivity
         }
     }
 
-    private void addIcon(IconGenerator iconFactory, CharSequence text, LatLng position) {
-        MarkerOptions markerOptions = new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(text)))
-                .position(position)
-                .anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
-        map.addMarker(markerOptions);
-    }
-
-    private synchronized void buildGoogleApiClient() {
-        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this)
-                .addConnectionCallbacks(this)
-                .addApi(LocationServices.API)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
-        googleApiClient.connect();
-    }
-
-    private void setGoogleMapButtonPosition() {
-        View locationButton = ((View) mapView
-                .findViewById(Integer.parseInt("1")).getParent())
-                .findViewById(Integer.parseInt("2"));
-        RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
-        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
-        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-        rlp.setMargins(0, 480, 0, 0);
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        map = googleMap;
-        LatLng latlng = new LatLng(latitude, longitude);
-
-        updateLocationUI();
-        setPickerPosition(getDeviceLocation(), latlng);
-        // Load and build walk route by default
-        loadWalkRoute();
-        loadCarRoute(false);
-    }
-
-    private void setPickerPosition(LatLng start, LatLng end) {
-        String startAddress = "";
-        if (start != null) {
-            startAddress = UtilPlace.getAddressByLatLng(getApplicationContext(), start);
-        }
-        tvStartPoint.setText(startAddress);
-        tvEndPoint.setText(address);
-        startPoint = start;
-        endPoint = end;
-    }
-
     private void updateLocationUI() {
         if (map != null) {
             if (Util.checkPermission(this)) {
@@ -347,6 +346,14 @@ public class GoogleMapActivity extends AppCompatActivity
                 lastLocation = null;
             }
         }
+    }
+
+    private void addIcon(IconGenerator iconFactory, CharSequence text, LatLng position) {
+        MarkerOptions markerOptions = new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(text)))
+                .position(position)
+                .anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
+        map.addMarker(markerOptions);
     }
 
     @Nullable
@@ -419,17 +426,17 @@ public class GoogleMapActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.e(TAG, "GoogleApiClient connection failed : " + connectionResult.getErrorMessage());
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
+        // Do something
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        // Do something
     }
 
     @Override
@@ -452,4 +459,5 @@ public class GoogleMapActivity extends AppCompatActivity
     public void onBackPressed() {
         super.onBackPressed();
     }
+
 }
