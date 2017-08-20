@@ -7,9 +7,9 @@ Example using Google Maps Api
 You need to get [API Key](https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend)
 Google Maps and enable:
 
+* Google Maps Android API
 * Google Places API for Android
 * Google Maps Directions API
-* Google Maps Distance Matrix API
 
 Create /res/value/google_maps_api.xml and add API key
 ```
