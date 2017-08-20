@@ -114,6 +114,7 @@
                 android:textAllCaps="false"
                 android:textColor="@color/colorWhite"
                 android:stateListAnimator="@null"
+                android:textSize="13sp"
                 android:text="0 min."
                 android:background="@drawable/btn_oval_blue"
                 android:drawableStart="@drawable/ic_directions_walk"/>
@@ -128,6 +129,7 @@
                 android:textAllCaps="false"
                 android:textColor="@color/colorWhite"
                 android:stateListAnimator="@null"
+                android:textSize="13sp"
                 android:text="0 min."
                 android:background="@drawable/btn_oval_blue"
                 android:drawableStart="@drawable/ic_directions_car" />
@@ -136,13 +138,11 @@
                 android:id="@+id/tv_distance"
                 android:layout_weight="30"
                 android:layout_width="0dp"
-                android:gravity="center_vertical"
                 android:layout_height="match_parent"
-                android:layout_margin="5dp"
-                android:paddingStart="20dp"
-                android:paddingEnd="0dp"
+                android:gravity="center_vertical"
                 android:textAllCaps="false"
                 android:textColor="@color/colorWhite"
+                android:textSize="13sp"
                 android:text="0 km"
                 android:drawablePadding="5dp"
                 android:drawableStart="@drawable/ic_pin_drop"/>
