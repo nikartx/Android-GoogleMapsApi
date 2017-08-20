@@ -70,7 +70,7 @@ public class UtilPlace {
         Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-            if (addresses != null) {
+            if (addresses != null && !addresses.isEmpty()) {
                 Address returnedAddress = addresses.get(0);
                 StringBuilder address = new StringBuilder();
                 for (int i = 0; i < returnedAddress.getMaxAddressLineIndex(); i++) {

@@ -1,12 +1,8 @@
 package ru.nikartm.googlemaps;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -52,10 +48,10 @@ import java.util.ArrayList;
 
 import ru.nikartm.googlemaps.constant.Constants;
 import ru.nikartm.googlemaps.util.GeocodingTask;
+import ru.nikartm.googlemaps.util.LocationHelper;
 import ru.nikartm.googlemaps.util.Util;
 import ru.nikartm.googlemaps.util.UtilPlace;
 
-import static android.location.Criteria.ACCURACY_FINE;
 import static ru.nikartm.googlemaps.constant.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static ru.nikartm.googlemaps.constant.Constants.SKIPPED_PERMISSIONS_ACCESS_GRANTED;
 
@@ -89,13 +85,13 @@ public class GoogleMapActivity extends AppCompatActivity
     private View mapView;
     private Direction walkDirection;
     private Direction carDirection;
+    private LocationHelper locationHelper;
 
     private double latitude;
     private double longitude;
     private String title;
     private String address;
 
-    private Location lastLocation;
     private LatLng startPoint;
     private LatLng endPoint;
 
@@ -111,6 +107,8 @@ public class GoogleMapActivity extends AppCompatActivity
         getSupportActionBar().setHomeButtonEnabled(true);
 
         iconFactory = new IconGenerator(this);
+        locationHelper = new LocationHelper(this);
+
         tvStartPoint = (TextView) findViewById(R.id.tv_start);
         tvEndPoint = (TextView) findViewById(R.id.tv_end);
         ivStartPicker = (ImageView) findViewById(R.id.iv_start_picker);
@@ -134,8 +132,8 @@ public class GoogleMapActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
-        LatLng latlng = new LatLng(latitude, longitude);
-        setPickerPosition(startPoint, latlng);
+        LatLng endLatLng = new LatLng(latitude, longitude);
+        setPickerPosition(getDeviceLocation(), endLatLng);
         updateLocationUI();
 
         // Load and build walk route by default
@@ -174,11 +172,7 @@ public class GoogleMapActivity extends AppCompatActivity
     }
 
     private void setPickerPosition(LatLng start, LatLng end) {
-        String startAddress = "";
-        if (start != null) {
-            startAddress = UtilPlace.getAddressByLatLng(getApplicationContext(), start);
-        }
-        tvStartPoint.setText(startAddress);
+        new GeocodingTask(getApplicationContext(), tvStartPoint).execute(start);
         tvEndPoint.setText(address);
         startPoint = start;
         endPoint = end;
@@ -201,9 +195,10 @@ public class GoogleMapActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 startPoint = getDeviceLocation();
-                tvStartPoint.setText(UtilPlace
-                        .getAddressByLatLng(getApplicationContext(), startPoint));
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(startPoint, DEFAULT_ZOOM));
+                if (startPoint != null) {
+                    new GeocodingTask(getApplicationContext(), tvStartPoint).execute(startPoint);
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(startPoint, DEFAULT_ZOOM));
+                }
             }
         });
     }
@@ -316,8 +311,6 @@ public class GoogleMapActivity extends AppCompatActivity
         CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, 200);
         map.animateCamera(update);
 
-        new GeocodingTask(getApplicationContext(), tvStartPoint).execute(startPoint);
-
         // Set markers on route
         addIcon(iconFactory, leg.getDistance().getText(), directionPositionList.get(directionPositionList.size()/2));
         map.addMarker(new MarkerOptions().position(startPoint).title(leg.getStartAddress()));
@@ -343,7 +336,6 @@ public class GoogleMapActivity extends AppCompatActivity
             } else {
                 map.setMyLocationEnabled(false);
                 map.getUiSettings().setMyLocationButtonEnabled(false);
-                lastLocation = null;
             }
         }
     }
@@ -359,25 +351,10 @@ public class GoogleMapActivity extends AppCompatActivity
     @Nullable
     private LatLng getDeviceLocation() {
         LatLng currentLocation = null;
-        String bestProvider;
-        if (Util.checkPermission(this)) {
-            try {
-                LocationManager locationManager = (LocationManager)
-                        getSystemService(Context.LOCATION_SERVICE);
-                Criteria criteria = new Criteria();
-                criteria.setAccuracy(ACCURACY_FINE);
-                lastLocation = locationManager.getLastKnownLocation(locationManager
-                        .getBestProvider(criteria, true));
-                if (lastLocation == null) {
-                    bestProvider = LocationManager.NETWORK_PROVIDER;
-                    lastLocation = locationManager.getLastKnownLocation(bestProvider);
-                }
-                double latitude = lastLocation.getLatitude();
-                double longitude = lastLocation.getLongitude();
-                currentLocation = new LatLng(latitude, longitude);
-            } catch (Exception e) {
-                Log.e(TAG, "Unknown device location", e);
-            }
+        if(locationHelper.isLocationAvailable()) {
+            currentLocation = new LatLng(locationHelper.getLatitude(), locationHelper.getLongitude());
+        } else {
+            locationHelper.showSettingsDialog();
         }
         return currentLocation;
     }
@@ -459,5 +436,4 @@ public class GoogleMapActivity extends AppCompatActivity
     public void onBackPressed() {
         super.onBackPressed();
     }
-
 }
